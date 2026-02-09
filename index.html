@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Marina Pflegebox Konfigurator</title>
+  <style>
+    :root { --max: 42; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 0; background:#f6f7fb; color:#111; }
+    header { padding: 20px; background:#fff; border-bottom:1px solid #e8e8ef; position: sticky; top:0; z-index: 5; }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 0 16px; }
+    h1 { margin: 0 0 6px; font-size: 20px; display:flex; align-items:center; gap:10px; }
+    .brandMark { width:22px; height:22px; display:inline-block; }
+    .sub { margin:0; color:#555; font-size: 13px; }
+    .grid { display:grid; grid-template-columns: 1.3fr 0.7fr; gap:16px; padding: 16px; }
+    @media (max-width: 900px){ .grid{ grid-template-columns: 1fr; } header{ position: static; } }
+
+    .card { background:#fff; border:1px solid #e8e8ef; border-radius: 14px; padding: 14px; box-shadow: 0 2px 10px rgba(0,0,0,.03); }
+    .card h2 { margin:0 0 10px; font-size: 16px; }
+        .row { display:grid; grid-template-columns: 84px 1fr auto; gap:12px; padding: 10px 0; border-top:1px dashed #ececf5; align-items:center; }
+    .pimg { width:84px; height:64px; object-fit:contain; border-radius: 12px; background:#f5f6fb; border:1px solid #ececf5; }
+    
+    .pimg { cursor: pointer; }
+    .pdesc { grid-column: 1 / -1; margin: 8px 0 0; color:#444; font-size:13px; line-height:1.35;
+      max-height: 0; overflow: hidden; transition: max-height .35s ease; }
+    .pdesc.open { max-height: 240px; }
+    .pdescInner { padding: 10px 12px; background:#f5f6fb; border:1px solid #ececf5; border-radius: 12px; }
+.controls { display:flex; align-items:center; gap:10px; }
+    @media (max-width: 520px){
+      .row{ grid-template-columns: 70px 1fr; grid-template-rows:auto auto; }
+      .controls{ grid-column: 1 / -1; justify-content:flex-start; }
+      .pimg{ width:70px; height:60px; }
+    }
+    .row:first-of-type { border-top:0; }
+    .name { font-weight: 650; }
+    .meta { color:#666; font-size:12px; margin-top:2px; }
+    .price { font-variant-numeric: tabular-nums; white-space:nowrap; }
+    .qty { display:flex; align-items:center; gap:6px; }
+    button { border:1px solid #d9d9e6; background:#fff; padding:8px 10px; border-radius: 10px; cursor:pointer; }
+    button:hover { background:#f4f4ff; }
+    input[type="number"] { width: 70px; padding: 8px; border:1px solid #d9d9e6; border-radius: 10px; font-size: 14px; }
+    .topline { display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap: wrap; }
+    .pill { padding: 6px 10px; border-radius: 999px; font-size: 12px; border:1px solid #e8e8ef; background:#fafbff; }
+    .pill strong { font-variant-numeric: tabular-nums; }
+
+    .barWrap { height: 10px; background:#eef0ff; border-radius: 999px; overflow:hidden; border:1px solid #e3e6ff; }
+    .bar { height: 100%; width: 0%; background: #4f46e5; transition: width .2s ease; }
+    .warn { color:#b42318; font-size: 12px; margin-top: 8px; display:none; }
+    .ok { color:#1a7f37; font-size: 12px; margin-top: 8px; display:none; }
+
+    .form { display:grid; gap:10px; }
+    .field label { display:block; font-size: 12px; color:#666; margin-bottom: 4px; }
+    .field input, .field textarea, .field select {
+      width:100%; box-sizing:border-box; padding: 10px; border-radius: 12px; border:1px solid #d9d9e6; font-size: 14px;
+      background:#fff;
+    }
+    textarea { min-height: 80px; resize: vertical; }
+
+    .actions { display:flex; gap:10px; flex-wrap: wrap; }
+    .primary { background:#4f46e5; color:#fff; border-color:#4f46e5; }
+    .primary:hover { background:#4338ca; }
+    .danger { background:#fff1f2; border-color:#fecdd3; color:#9f1239; }
+    .danger:hover { background:#ffe4e6; }
+
+    .summary pre { margin:0; background:#0b1020; color:#e6e6ff; padding: 12px; border-radius: 12px; overflow:auto; font-size: 12px; }
+    .muted { color:#666; font-size: 12px; margin-top:6px; }
+    .disabled { opacity:.55; pointer-events:none; }
+
+    footer { padding: 18px 16px 26px; color:#6b7280; font-size:12px; text-align:center; }
+    footer a { color:inherit; }
+  </style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="topline">
+      <div>
+        <h1>
+          <svg class="brandMark" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 21s-8-4.6-9.8-10.1C1 7.7 3.2 5 6.2 5c1.7 0 3.2.9 3.8 2.2C10.6 5.9 12.1 5 13.8 5c3 0 5.2 2.7 4 5.9C20 16.4 12 21 12 21z" fill="#e11d48"/>
+          </svg>
+          Marina Pflegebox Konfigurator
+        </h1>
+        <p class="sub">Wähle Produkte & Mengen – Budget wird live geprüft.</p>
+      </div>
+      <div class="pill">Budget: <strong id="budgetShow">42,00 €</strong> • Summe: <strong id="sumShow">0,00 €</strong></div>
+    </div>
+    <div style="margin-top:10px;">
+      <div class="barWrap"><div class="bar" id="bar"></div></div>
+      <div class="warn" id="warn">⚠️ Budget überschritten – reduziere Mengen.</div>
+      <div class="warn" id="req" style="display:none;">⚠️ Bitte wähle eine Handschuhgröße (S–XL).</div>
+      <div class="ok" id="ok">✅ Passt ins Budget.</div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="grid">
+    <section class="card" aria-label="Produkte">
+      <h2>Produkte</h2>
+      <div id="productList"></div>
+</div>
+
+</section>
+
+    <aside class="card" aria-label="Bestellung">
+      <h2>Bestellung</h2>
+
+      <div class="form">
+        <div class="field">
+          <label>Budget (€, z. B. 42)</label>
+          <input id="budget" type="number" min="0" step="0.01" value="42" />
+        </div>
+
+        <div class="field">
+          <label>Vor- und Nachname</label>
+          <input id="name" type="text" placeholder="z. B. Erika Mustermann" />
+        </div>
+
+        <div class="field">
+          <label>Adresse</label>
+          <input id="address" type="text" placeholder="Straße, Nr., PLZ Ort" />
+        </div>
+
+        <div class="field">
+          <label>Pflegegrad</label>
+          <select id="pflegegrad">
+            <option value="">Bitte wählen</option>
+            <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Notiz (optional)</label>
+          <textarea id="note" placeholder="z. B. Bitte keine XL-Handschuhe."></textarea>
+        </div>
+      </div>
+
+      <div class="actions" style="margin-top:12px;">
+        <button class="primary" id="btnCreate" type="button">Bestellung erstellen</button>
+        <button id="btnCopy" type="button">JSON kopieren</button>
+        <button class="danger" id="btnReset" type="button">Zurücksetzen</button>
+      </div>
+
+      <div style="margin-top:12px;" class="summary">
+        <h2 style="margin-top:0;">Export</h2>
+        <pre id="output">{}</pre>
+        <div class="muted">Das JSON kannst du an ein Backend schicken (API), per Mail weiterleiten oder speichern.</div>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<footer>
+  © <span id="y"></span> Marina Pflegebox • Lokal nutzbar als <code>index.html</code> (kein Server nötig)
+</footer>
+
+<script>
+  // 1) Produkte hier anpassen (Name, Einheit/Packungsinfo, Preis pro Stück/Packung)
+  const products = [
+    { id:"gloves", name:"Einmalhandschuhe", meta:"Nitril, 100 Stk", price: 6.49, desc:"Latexfreie Einmalhandschuhe aus Nitril (puderfrei). Reißfest und angenehm zu tragen – für Pflege, Haushalt und hygienische Tätigkeiten. Inhalt: 100 Stück pro Packung. Größen: S–XL.", img:"images/gloves.svg" },
+    { id:"masks", name:"FFP2-Masken", meta:"10 Stk", price: 4.99, desc:"Partikelfiltrierende Halbmasken FFP2 für den einmaligen Gebrauch. Geeignet zum Eigen- und Fremdschutz in typischen Alltagssituationen. Inhalt: 10 Stück pro Packung.", img:"images/masks.svg" },
+    { id:"handdes", name:"Händedesinfektion", meta:"500 ml", price: 4.79, desc:"Händedesinfektionsmittel zur hygienischen Händedesinfektion. Schnelle Einwirkzeit, für unterwegs und zuhause. Inhalt: 500 ml.", img:"images/handdes.svg" },
+    { id:"surfacedes", name:"Flächendesinfektion", meta:"500 ml", price: 4.49, desc:"Flächendesinfektionsmittel zur Reinigung und Desinfektion wischfester Oberflächen (z. B. Türgriffe, Bad, Küche). Inhalt: 500 ml.", img:"images/surfacedes.svg" },
+    { id:"aprons", name:"Schutzschürzen", meta:"100 Stk", price: 7.99, desc:"Einweg-Schutzschürzen zum Schutz von Kleidung bei Pflege und Reinigung. Flüssigkeitsabweisend, praktisch zu entnehmen. Inhalt: 100 Stück.", img:"images/aprons.svg" },
+    { id:"pads", name:"Bettschutzeinlagen", meta:"25 Stk", price: 7.49, desc:"Saugfähige Bettschutzeinlagen zum Schutz von Matratzen, Sesseln oder Stühlen. Ideal bei Inkontinenz oder zur Schonung von Unterlagen. Inhalt: 25 Stück.", img:"images/pads.svg" },
+
+    { id:"surface_wipes", name:"Flächen-Desinfektionstücher", meta:"80–100 Stk", price: 4.29, desc:"Gebrauchsfertige Desinfektionstücher zur Reinigung und Desinfektion von wischfesten Oberflächen (z. B. Türklinken, Bad, Küche). Praktisch für zuhause und unterwegs. Inhalt: ca. 80–100 Tücher (je nach Packung).", img:"../img/flaechendesinfektionstuecher.jpg" },
+    { id:"hand_wipes", name:"Händedesinfektionstücher", meta:"80–100 Stk", price: 4.29, desc:"Alkoholische Desinfektionstücher zur hygienischen Händedesinfektion – ideal unterwegs. Hautverträglich, schnell wirksam, kein Abspülen notwendig. Inhalt: ca. 80–100 Tücher (je nach Packung).", img:"../img/haendedesinfektionstuecher.jpg" },
+
+    { id:"handgel", name:"Hand-Desinfektionsgel", meta:"250 ml", price: 2.99, desc:"Hand-Desinfektionsgel für unterwegs. Schnell trocknend, ideal ohne Wasser. Inhalt: 250 ml.", img:"images/sanitizer.svg" },
+  ];
+
+  const state = Object.fromEntries(products.map(p => [p.id, 0]));
+
+  // Zusätzliche Optionen (z.B. Größenwahl für Handschuhe)
+  const options = {
+    gloves: { size: "" } // S | M | L | XL
+  };
+
+  const productList = document.getElementById("productList");
+  const sumShow = document.getElementById("sumShow");
+  const budgetInput = document.getElementById("budget");
+  const budgetShow = document.getElementById("budgetShow");
+  const bar = document.getElementById("bar");
+  const warn = document.getElementById("warn");
+  const req = document.getElementById("req");
+  const ok = document.getElementById("ok");
+
+  const out = document.getElementById("output");
+  const btnCreate = document.getElementById("btnCreate");
+  const btnCopy = document.getElementById("btnCopy");
+  const btnReset = document.getElementById("btnReset");
+
+  const eur = (n) => (new Intl.NumberFormat("de-DE", { style:"currency", currency:"EUR" })).format(n);
+
+  function calcSum(){
+    return products.reduce((acc, p) => acc + state[p.id] * p.price, 0);
+  }
+
+  function getBudget(){
+    const b = Number(budgetInput.value || 0);
+    return Number.isFinite(b) ? b : 0;
+  }
+
+  function render(){
+    const budget = getBudget();
+    const sum = calcSum();
+
+    budgetShow.textContent = eur(budget);
+    sumShow.textContent = eur(sum);
+
+    const ratio = budget > 0 ? Math.min(1, sum / budget) : 0;
+    bar.style.width = (ratio * 100).toFixed(0) + "%";
+
+    const over = sum - budget;
+    warn.style.display = (over > 0.001) ? "block" : "none";
+    ok.style.display = (over <= 0.001 && sum > 0) ? "block" : "none";
+    req.style.display = glovesNeedsSize ? "block" : "none";
+
+    // Button sperren wenn Budget überschritten oder Pflichtfelder fehlen
+    const glovesNeedsSize = (state.gloves > 0) && (!options.gloves.size);
+    btnCreate.classList.toggle("disabled", over > 0.001 || sum === 0 || glovesNeedsSize);
+  }
+  function escHtml(str){
+    return String(str)
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;')
+      .replace(/'/g,'&#39;');
+  }
+
+  function rowTemplate(p){
+    const qty = state[p.id];
+    const row = document.createElement("div");
+    row.className = "row";
+    const imgSrc = p.img || "images/placeholder.svg";
+    row.innerHTML = `
+      <img class="pimg" src="${imgSrc}" alt="${p.name}" loading="lazy" onerror="this.src='images/placeholder.svg';this.onerror=null;" />
+      <div>
+        <div class="name">${p.name}</div>
+        <div class="meta">${p.meta}</div>
+        ${p.id === "gloves" ? `
+          <div class="field" style="margin-top:8px; max-width:220px;">
+            <label for="gloveSize_${p.id}">Größe</label>
+            <select id="gloveSize_${p.id}" data-act="gloveSize" data-id="${p.id}" aria-label="Handschuhgröße wählen">
+              <option value="">Bitte wählen…</option>
+              <option value="S">S</option>
+              <option value="M">M</option>
+              <option value="L">L</option>
+              <option value="XL">XL</option>
+            </select>
+            <div class="muted" style="margin-top:4px;">Pflichtfeld bei Auswahl.</div>
+          </div>
+        ` : ""}
+
+      </div>
+      <div class="controls">
+        <div class="price">${eur(p.price)}</div>
+        <div class="qty">
+          <button type="button" data-act="minus" data-id="${p.id}">−</button>
+          <input aria-label="Menge" type="number" min="0" step="1" value="${qty}" data-act="input" data-id="${p.id}" />
+          <button type="button" data-act="plus" data-id="${p.id}">+</button>
+        </div>
+      </div>
+
+      ${p.desc ? `
+        <div class="pdesc" data-role="desc" aria-hidden="true">
+          <div class="pdescInner">${escHtml(p.desc).replace(/\n/g,'<br>')}</div>
+        </div>
+      ` : ``}
+
+`;
+    // Größenwahl für Handschuhe setzen
+    if(p.id === "gloves"){
+      const sel = row.querySelector('select[data-act="gloveSize"]');
+      if(sel) sel.value = options.gloves.size || "";
+    }
+
+    return row;
+  }
+
+  function mountProducts(){
+    productList.innerHTML = "";
+    products.forEach(p => productList.appendChild(rowTemplate(p)));
+  }
+
+  function updateQty(id, next){
+    state[id] = Math.max(0, Math.floor(Number(next) || 0));
+    mountProducts();
+    render();
+  }
+
+  
+  productList.addEventListener("click", (e) => {
+    // Klick auf Produktbild: Beschreibung ein-/ausklappen
+    const img = e.target.closest("img.pimg");
+    if(img){
+      const row = img.closest(".row");
+      const desc = row ? row.querySelector('.pdesc[data-role="desc"]') : null;
+      if(desc){
+        desc.classList.toggle("open");
+        const isOpen = desc.classList.contains("open");
+        desc.setAttribute("aria-hidden", String(!isOpen));
+      }
+      return;
+    }
+
+    const btn = e.target.closest("button");
+    if(!btn) return;
+    const id = btn.dataset.id;
+    const act = btn.dataset.act;
+    if(!id) return;
+    if(act === "minus") updateQty(id, state[id] - 1);
+    if(act === "plus") updateQty(id, state[id] + 1);
+  });
+
+
+
+  productList.addEventListener("change", (e) => {
+    const sel = e.target.closest('select[data-act="gloveSize"]');
+    if(!sel) return;
+    const id = sel.dataset.id;
+    if(id === "gloves"){
+      options.gloves.size = sel.value;
+      render();
+    }
+  });
+
+  productList.addEventListener("input", (e) => {
+    const inp = e.target.closest("input[data-act='input']");
+    if(!inp) return;
+    updateQty(inp.dataset.id, inp.value);
+  });
+
+  budgetInput.addEventListener("input", render);
+
+  btnCreate.addEventListener("click", () => {
+    const budget = getBudget();
+    const sum = calcSum();
+    if(sum <= 0) return;
+    const glovesNeedsSize = (state.gloves > 0) && (!options.gloves.size);
+    if(glovesNeedsSize) { alert("Bitte Handschuhgröße (S–XL) wählen."); return; }
+
+    const payload = {
+      createdAt: new Date().toISOString(),
+      budget,
+      total: Number(sum.toFixed(2)),
+      customer: {
+        name: document.getElementById("name").value.trim(),
+        address: document.getElementById("address").value.trim(),
+        pflegegrad: document.getElementById("pflegegrad").value,
+        note: document.getElementById("note").value.trim()
+      },
+      items: products
+        .filter(p => state[p.id] > 0)
+        .map(p => ({
+          id: p.id,
+          name: p.name,
+          meta: (p.id === "gloves" && options.gloves.size) ? `${p.meta} | Größe: ${options.gloves.size}` : p.meta,
+          options: (p.id === "gloves") ? { size: options.gloves.size } : {},
+          qty: state[p.id],
+          unitPrice: p.price,
+          lineTotal: Number((state[p.id] * p.price).toFixed(2))
+        })),
+    };
+
+    out.textContent = JSON.stringify(payload, null, 2);
+  });
+
+  btnCopy.addEventListener("click", async () => {
+    const txt = out.textContent || "{}";
+    try {
+      await navigator.clipboard.writeText(txt);
+      btnCopy.textContent = "Kopiert ✓";
+      setTimeout(() => (btnCopy.textContent = "JSON kopieren"), 900);
+    } catch {
+      alert("Kopieren nicht möglich – bitte manuell markieren & kopieren.");
+    }
+  });
+
+  btnReset.addEventListener("click", () => {
+    for(const p of products) state[p.id] = 0;
+    options.gloves.size = "";
+    out.textContent = "{}";
+    mountProducts();
+    render();
+  });
+
+  document.getElementById("y").textContent = new Date().getFullYear();
+
+  mountProducts();
+  render();
+</script>
+</body>
+</html>
